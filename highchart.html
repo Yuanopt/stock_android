@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="https://code.highcharts.com/stock/highstock.src.js"></script>
+    <script
+            src="https://code.jquery.com/jquery-3.2.1.js"
+            integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<div id="container" style="padding:0"></div>
+<script type="text/javascript">
+    drawHistory("","","MSFT");
+    function drawPrice(timedata,pricedata,voldata,symbol){
+            var timedatajson = JSON.parse(timedata);
+            var pricedatajson = JSON.parse(pricedata);
+            var voldatajson = JSON.parse(voldata);
+            var xdata = timedatajson.splice(0,121).reverse();
+            var price = pricedatajson.slice(879,1000);
+            var volume = voldatajson;
+            var subtitle = "<a href='https://www.alphavantage.co'> Source: Alpha Vantage </a>";
+            Highcharts.chart('container',{
+                chart:{
+                    zoomType: 'x',
+                },
+                title: {text: symbol+' Stock Price and Volume'},
+                subtitle : {
+                    text: subtitle,
+                    useHTML: true,
+                },
+                xAxis: {
+                    tickPixelInterval: 50,
+                    tickInterval: 5,
+                    categories: xdata,
+                },
+                yAxis: [{
+                    title: {
+                        text: 'Volume',
+                    },
+                    opposite: true
+                },{
+                    title:{
+                        text: 'Stock Price',
+                    },
+                }],
+                plotOptions: {
+                    series:{
+                        marker: {
+                            enabled: false,
+                        },
+                    lineColor: 'red',
+                },
+                area: {
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                }
+                },
+                tooltip: {
+                    valueDecimals: 2,
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'center',
+                    x: 0,
+                    y: 0,
+                    float: true,
+                },
+                series: [{
+                    type: 'area',
+                    color: 'rgb(244,149,145)',
+                    name: symbol,
+                    data: price,
+                    yAxis:1,
+                },{
+                    type:'column',
+                    color: 'blue',
+                    name:  symbol+'volume',
+                    data: volume,
+                }]
+            });
+        }
+
+    function drawHistory(timedata,pricedata,symbol){
+            // var data = new Array();
+            // var timedatajson = JSON.parse(timedata);
+            // var pricedatajson = JSON.parse(pricedata);
+
+            // var timestamp = timedatajson.reverse();
+            // var price = pricedatajson;
+            
+            // for(var i = 0; i < timedata.length;i++){
+            //     var times = new Date(timestamp[i]);
+            //     data[i] = [parseFloat(times.valueOf()),parseFloat(price[i])];
+            // }
+            var url = "http://stocksearchmb.us-east-1.elasticbeanstalk.com/detail?symbol="+symbol;
+            $.getJSON(url, function (data) {
+            var timedatas = data['xdata'].reverse();
+            var prices = data['ydataprice'];
+            var data1 = new Array();
+            for(var i = 0; i < timedatas.length; i++){
+                var times = new Date(timedatas[i]);
+                data1[i] = [times.valueOf(),parseFloat(Number(prices[i]).toFixed(2))];
+                console.log(data1[i]);
+            }
+            console.log(data1);
+            console.log(data1.length);
+            var subtitle = "<a href='https://www.alphavantage.co'> Source: Alpha Vantage </a>";
+                Highcharts.stockChart('container',{
+
+                    title: {
+                        text: symbol + ' Stock Price'
+                    },
+                    subtitle:{
+                        text: subtitle,
+                        useHTML: true,
+                    },
+                    rangeSelector:{
+                        selected: 1,
+                    },
+                    series: [{
+                        name: symbol + ' Stock Price',
+                        data: data1,
+                        type: 'area',
+                        tooltip: {
+                            valueDecimals: 2
+                        },
+                        }
+                    ],
+                 });
+            });
+        };
+
+    function drawindicator(data,func,symbol){
+
+        if(func.length == 3){
+            drawsingle(data, func, symbol);
+        }else if(func == 'BBANDS' || func =='MACD'){
+            drawtri(data, func, symbol);
+        }else {
+            drawdouble(data, func, symbol);
+        }
+
+    }
+
+    function drawsingle(data, func, symbol){
+
+         var data = JSON.parse(data);
+         var xdata = new Array();
+         var ydata = new Array();
+         for(var i = 0; i < data.length; i++){
+            ydata[i] = parseFloat(data[i].split(" ")[0]);
+            xdata[i] = data[i].split(" ")[1];
+
+         }
+        switch(func){
+            case "SMA":
+            var title = "Simple Moving Average(SMA)";
+            break;
+            case "EMA":
+            var title = "Exponential Moving Average(EMA)";
+            break;
+            case "RSI":
+            var title = "Relative Strength Index (RSI)";
+            break;
+            case "ADX":
+            var title = "Average Directional movement Index (ADX)";
+            break;
+            case "CCI":
+            var title = "Commodity Channel Index (CCI)";
+            break;
+            default:
+            break;
+
+        }
+        var subtitle = "<a href='https://www.alphavantage.co'> Source: Alpha Vantage </a>";
+        var chart = Highcharts.chart('container',{
+        chart:{
+                zoomType: 'x',
+            },
+            title: {
+                text: title,
+            },
+
+            subtitle: {
+                text: subtitle,
+                useHTML:true,
+            },
+
+            xAxis: {
+                tickInterval: 5,
+                categories: xdata.reverse(),
+            },
+
+            yAxis: {
+                title: {
+                    text: func,
+                },
+            },
+            plotOptions: {
+                series: {
+                        marker: {
+                        radius: 2,
+                    },
+                    lineWidth: 1,
+                },
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: 0,
+                y: 200,
+                float: true,
+            },
+
+            series: [{
+                type: 'spline',
+                color: 'red',
+                name: symbol,
+                data: ydata.reverse(),
+            }]
+
+        });//highchart end;
+        post(chart);
+    }
+
+    function drawdouble(data, func, symbol){
+        var data = JSON.parse(data);
+        var xdata = new Array();
+        var ydata1 = new Array();
+        var ydata2 = new Array();
+        for(var i = 0; i < data.length; i++){
+            ydata1[i] = parseFloat(data[i].split(" ")[0]);
+            ydata2[i] = parseFloat(data[i].split(" ")[1]);
+            xdata[i] = parseFloat(data[i].split(" ")[2]);
+        }
+     var title = 'Stochastic Oscillator (STOCH)';
+     var subtitle = "<a href='https://www.alphavantage.co'> Source: Alpha Vantage </a>";
+     Highcharts.chart('container',{
+             chart:{
+                    zoomType: 'x',
+                },
+             title: {
+                 text: title,
+             },
+
+             subtitle: {
+                 text: subtitle,
+                 useHTML: true,
+             },
+
+             xAxis: {
+                 tickInterval: 5,
+                 categories: xdata.reverse(),
+             },
+
+             yAxis: {
+                 title: {
+                     text: func,
+                 },
+             },
+             plotOptions: {
+                 series: {
+                        marker: {
+                         radius: 2,
+                     },
+                     lineWidth: 1,
+                 },
+             },
+             legend: {
+                 layout: 'vertical',
+                 align: 'right',
+                 verticalAlign: 'top',
+                 x: 0,
+                 y: 200,
+                 float: true,
+             },
+
+             series: [{
+                 type: 'spline',
+                 color: 'red',
+                 name:  symbol + ' slowK',
+                 data: ydata1.reverse(),
+             },{
+                 type: 'spline',
+                 color: 'blue',
+                 name: symbol + ' slowD',
+                 data: ydata2.reverse(),
+
+             }]
+     })
+    }
+
+    function drawtri(data, func, symbol){
+        var data = JSON.parse(data);
+        var ydata1 = new Array();
+        var ydata2 = new Array();
+        var ydata3 = new Array();
+        var xdata = new Array();
+            var name1;
+            var name2;
+            var name3;
+            var title;
+            if(func === 'MACD'){
+                name1 = 'MACD_Signal';
+                name2 = 'MACD_Hist';
+                name3 = 'MACD';
+                title = 'Moving Average Convergence/Divergence(MACD)';
+            } else {
+                name1 = 'Real Lower Band';
+                name2 = 'Real Upper Band';
+                name3 = 'Real Middle Band';
+                title = "Bollinger Bands (BBANDS)";
+            }
+            for(var i = 0; i < data.length; i++ ){
+
+                ydata1[i] = parseFloat(data[i].split(" ")[0]);
+                ydata2[i] = parseFloat(data[i].split(" ")[1]);
+                ydata3[i] = parseFloat(data[i].split(" ")[2]);
+                xdata[i] = parseFloat(data[i].split(" ")[3]);
+            }
+            var subtitle = "<a href='https://www.alphavantage.co'> Source: Alpha Vantage </a>";
+            Highcharts.chart('container',{
+                chart:{
+                    zoomType: 'x',
+                },
+                title: {
+                    text: title,
+                },
+                subtitle: {
+                    text: subtitle,
+                    useHTML: true,
+                },
+                xAxis: {
+                    tickInterval: 5,
+                    categories: xdata.reverse(),
+                },
+                yAxis: {
+                    title: {
+                        text: func,
+                    },
+                },
+                plotOptions: {
+                    series: {
+                           marker: {
+                            radius: 2,
+                        },
+                        lineWidth: 1,
+                    },
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: 0,
+                    y: 200,
+                    float: true,
+                },
+                series: [{
+                    type: 'spline',
+                    color: 'red',
+                    name: name1,
+                    data: ydata1.reverse(),
+                },{
+                    type: 'spline',
+                    color: 'blue',
+                    name: name2,
+                    data: ydata2.reverse(),
+                },{
+                    type: 'spline',
+                    color: 'black',
+                    name: name3,
+                    data: ydata3.reverse(),
+                }]
+            })
+        }
+
+    function post(chart){
+        var option = JSON.stringify(chart);
+        var exportUrl = "http://export.highcharts.com/";
+        var dataString = encodeURI('async=true&type=jpeg&width=400&options=' + option);
+         if (window.XDomainRequest) {
+            var xdr = new XDomainRequest();
+            xdr.open("post", exportUrl+ '?' + dataString);
+            xdr.onload = function () {
+                var url = exportUrl + xdr.responseText;
+                Myfunction.Fbshare(url);
+            };
+            xdr.send();
+        } else {
+            $.ajax({
+                type: 'POST',
+                data: dataString,
+                url: exportUrl,
+                success: function (data) {
+                    var url = exportUrl + data
+                    Myfunction.Fbshare(url);
+
+                },
+                error: function (err) {
+
+                }
+            });
+        }
+
+    }
+
+</script>
+</body>
+
+</html>

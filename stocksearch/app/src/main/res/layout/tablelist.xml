@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/stocktable_tag"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:paddingBottom="10sp"
+        android:paddingLeft="4sp"
+        android:paddingTop="10sp"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="5">
+        <TextView
+            android:id="@+id/stocktable_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10sp"
+            android:paddingLeft="4sp"
+            android:paddingTop="10sp"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"/>
+
+        <ImageView
+            android:id="@+id/upordown"
+            android:layout_width="30sp"
+            android:layout_height="30sp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20sp"
+            android:layout_toEndOf="@+id/stocktable_value"
+            android:layout_toRightOf="@+id/stocktable_value"
+            android:src="@drawable/uparrow">
+        </ImageView>
+    </RelativeLayout>
+
+</LinearLayout>
